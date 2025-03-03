@@ -51,7 +51,7 @@ pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -
             let screenshot_result = match result {
                 Ok(sample_buffer) => {
                     let capture_time = Instant::now();
-                    Ok(VideoFrame {
+                    Some(Ok(VideoFrame {
                         impl_video_frame: MacosVideoFrame::SCStream(
                             MacosSCStreamVideoFrame {
                                 sample_buffer,
@@ -64,11 +64,14 @@ pub async fn take_screenshot(token: CaptureAccessToken, config: CaptureConfig) -
                                 wgpu_device: callback_wgpu_device.clone(),
                             }
                         )
-                    })
+                    }))
                 },
-                Err(error) => Err(ScreenshotError::Other(format!("Failed to capture screenshot: {}", error)))
+                Err(error) => Some(Err(ScreenshotError::Other(format!("Failed to capture screenshot: {}", error)))),
+                _ => None
             };
-            tx.take().unwrap().send(screenshot_result).unwrap();
+            if let (Some(screenshot_result), Some(tx)) = (screenshot_result, tx.take()) {
+                tx.send(screenshot_result).unwrap();
+            }
         });
     } else {
         let handler = SCStreamHandler::new(move |stream_result| {
