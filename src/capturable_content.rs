@@ -326,7 +326,7 @@ impl CapturableWindow {
 }
 
 /// Represents a capturable display
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct CapturableDisplay {
     pub(crate) impl_capturable_display: ImplCapturableDisplay,
 }
